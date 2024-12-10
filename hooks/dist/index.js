@@ -24,7 +24,6 @@ app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, 
     // store in db a new trigger
     // push it on to queue (kafka/redis)
     yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
-        console.log("hi there1");
         const run = yield client.zapRun.create({
             data: {
                 zapId: zapId,
@@ -36,11 +35,9 @@ app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, 
                 zapRunId: run.id
             }
         });
-        console.log("hi there2");
     }));
     res.json({
         message: "WebHook recieved"
     });
-    console.log("hi there3");
 }));
 app.listen(3000);
