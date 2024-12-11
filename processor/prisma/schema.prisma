@@ -3,7 +3,7 @@
 
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
- 
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -19,15 +19,19 @@ model User {
   name     String
   email    String
   password String
+  zaps     Zap[]
 
 }
 
 model Zap {
-   id        String @id @default(uuid())
-   triggerId String
+   id         String @id @default(uuid())
+   triggerId  String
+   userId     Int
    trigger    Trigger?
    actions    Action[]
    zapRuns    ZapRun[]
+   user       User @relation(fields: [userId] , references: [id])
+
 }
 
 model Trigger {
@@ -36,6 +40,7 @@ model Trigger {
   triggerId  String
   type       AvailableTrigger@relation(fields: [triggerId] , references: [id])
   zap        Zap  @relation(fields: [zapId] , references: [id])
+
 }
 
 model Action {
@@ -44,7 +49,9 @@ model Action {
   zapId      String
   zap        Zap  @relation(fields: [zapId] ,  references: [id])
   actionId   String
-  type       AvailableAction @relation(fields: [actionId] , references: [id])
+  type        AvailableAction @relation(fields: [actionId] , references: [id])
+ sortingOrder Int    @default(0)
+
 
 }
 
