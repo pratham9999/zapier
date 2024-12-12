@@ -64,7 +64,7 @@ export default function () {
                     password,
                     name
                  })
-                 router.push("login")
+                 router.push("/login")
               }} size="big">
                 Get Started free
               </PrimaryButton>

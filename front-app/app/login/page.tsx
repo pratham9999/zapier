@@ -54,7 +54,7 @@ export default function () {
             ></Input>
             <div className="pt-4">
               <PrimaryButton onClick={async() => {
-                  const res = await axios.post(`${BACKEND_URL}/api/v1/users/signin`,{
+                  const res = await axios.post(`${BACKEND_URL}/api/v1/user/signin`,{
                     username : email ,
                     password,
                   })
