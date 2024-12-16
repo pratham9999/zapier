@@ -1,17 +1,46 @@
+/* eslint-disable @next/next/no-img-element */
 /* eslint-disable react/jsx-key */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 "use client"
 
+import { BACKEND_URL } from "@/app/config";
 import { Appbar } from "@/components/Appbar"
 import { LinkButton } from "@/components/buttons/LinkButton";
 import { PrimaryButton } from "@/components/buttons/PrimaryButton";
 import { ZapCell } from "@/components/ZapCell";
-import { useState } from "react"
+import axios from "axios";
+import { AbsoluteString } from "next/dist/lib/metadata/types/metadata-types";
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation";
 
 /* eslint-disable import/no-anonymous-default-export */
 /* eslint-disable react/display-name */
 
+
+function useAvailableActionsAndTriggers(){
+    const [availableActions , setAvailableActions] = useState([]);
+    const [availableTriggers , setAvailableTriggers] = useState([]);
+
+    useEffect(()=>{
+ 
+     axios.get(`${BACKEND_URL}/api/v1/trigger/available`)
+              .then(x=> setAvailableTriggers(x.data.availableTriggers))  
+              
+     axios.get(`${BACKEND_URL}/api/v1/action/available`)
+                  .then(x=>setAvailableActions(x.data.availableActions ))         
+
+    } , [])
+
+    return {
+        availableActions ,
+        availableTriggers
+    }
+}
+
 export default function () {
+     const router = useRouter();
+
+    const {availableActions , availableTriggers} = useAvailableActionsAndTriggers() ;
 
     const [selectedTrigger , setSelectedTrigger] = useState<{
         id :string,
@@ -26,6 +55,28 @@ export default function () {
 
     return <div>
      <Appbar/>
+     <div className="flex justify-end bg-slate-200 p-4">
+             <PrimaryButton onClick={async ()=>{
+                  if(!selectedTrigger?.id){
+                    return  ;
+                  }
+
+                  const response = await axios.post(`${BACKEND_URL}/api/v1/zap`,{
+                    "availableTriggerId" : selectedTrigger.id,
+                    "triggerMetadata" :{},
+                    "actions" : selectedActions.map(a=>({
+                         availableActionId : a.availableActionId,
+                         actionMetadata : {}
+                    }))
+                  } , {
+                    headers : {
+                        Authorization : localStorage.getItem("token")
+                    }
+                  })
+
+                  router.push("/dashboard")
+             }} >Publish</PrimaryButton>
+     </div>
    
    <div className="w-full min-h-screen bg-slate-200 flex flex-col justify-center">
           <div className="flex justify-center w-full">
@@ -52,7 +103,7 @@ export default function () {
     </div>
    </div>
        
-     {selectedModalIndex && <Modal onSelect={(props : null |  {name :string , id : string})=>{
+     {selectedModalIndex && <Modal availableItems={selectedModalIndex===1 ? availableTriggers : availableActions} onSelect={(props : null |  {name :string , id : string})=>{
              
              if(props===null){
                 setSelectedModalIndex(null);
@@ -85,9 +136,10 @@ export default function () {
 }
 
 
-function Modal ({index , onSelect} :{ 
+function Modal ({index , onSelect , availableItems} :{ 
     index : number,
-    onSelect : (props : null |  {name :string , id : string})=> void
+    onSelect : (props : null |  {name :string , id : string})=> void,
+    availableItems : {id : string , name : string , image : string}[]
 }) {
    return<div className="fixed top-0 right-0 left-0 z-50 justify-center items-center w-full md:inset-0 h-[calc(100%-1rem)] max-h-full bg-slate-100 bg-opacity-70 flex">
    <div className="relative p-4 w-full max-w-2xl max-h-full">
@@ -105,8 +157,18 @@ function Modal ({index , onSelect} :{
                    <span className="sr-only">Close modal</span>
                </button>
            </div>
-           <div className="p-4 md:p-5 space-y-4">
-                
+           <div className="p-4 md:p-5 space-y-4" key={index}>
+                {availableItems.map(({id , name , image})=>{
+                    return <div onClick={()=>{
+                        onSelect({
+                            id,
+                            name,
+                        })
+                    }} className="flex border p-4 cursor-pointer hover:bg-slate-100" key={id}>
+                        <img src={image} width={30} className="rounded-full" alt="my-image"/> <div className="flex flex-col justify-center pl-3">{name}</div>
+                         
+                    </div>
+                })}
            </div>
        </div>
    </div>

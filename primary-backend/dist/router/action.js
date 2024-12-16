@@ -12,7 +12,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.actionRouter = void 0;
 const express_1 = require("express");
 const db_1 = require("../db");
-console.log("111");
 const router = (0, express_1.Router)();
 router.get("/available", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
