@@ -22,7 +22,6 @@ app.post("/hooks/catch/:userId/:zapId", (req, res) => __awaiter(void 0, void 0, 
     const zapId = req.params.zapId;
     const body = req.body;
     // store in db a new trigger
-    // push it on to queue (kafka/redis)
     try {
         yield client.$transaction((tx) => __awaiter(void 0, void 0, void 0, function* () {
             const run = yield tx.zapRun.create({

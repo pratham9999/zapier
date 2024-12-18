@@ -1,4 +1,3 @@
-import { Producer } from './../node_modules/kafkajs/types/index.d';
 import { PrismaClient } from "@prisma/client";
 import {Kafka} from "kafkajs"
 const client = new PrismaClient();
@@ -21,15 +20,43 @@ async function main() {
             take:10
         })
            
-        
+        console.log(pendingRows);
+         
 
-        producer.send({
-            topic : TOPIC_NAME,
-            messages:    pendingRows.map(r=>({
-                        value : r.zapRunId
-                  }))
-            
-        })
+
+      //   producer.send({
+      //       topic: TOPIC_NAME,
+      //       messages: pendingRows.map(r => ({
+      //           value: JSON.stringify({
+      //               zapRunId: r.zapRunId,
+      //               stage: 0
+      //           })
+      //       }))
+      //   });
+
+      const messages = pendingRows.map(r => {
+            const message = { 
+                zapRunId: r.zapRunId, 
+                stage: 0 
+            };
+            console.log("Sending message:", JSON.stringify(message));
+            return {
+                value: JSON.stringify(message)
+            }
+        });
+
+        try {
+            await producer.send({
+                topic: TOPIC_NAME,
+                messages: messages
+            });
+        } catch (error) {
+            console.error("Error sending to Kafka:", error);
+        }
+
+
+       
+        
       
         await client.zapRunOutbox.deleteMany({
             where : {
@@ -39,7 +66,7 @@ async function main() {
             }
         })
 
-        
+          await new Promise(r=>setTimeout(r,3000));
          
       }
 }
