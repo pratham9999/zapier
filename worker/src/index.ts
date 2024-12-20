@@ -1,7 +1,9 @@
+require("dotenv").config;
 import { Kafka } from 'kafkajs';
 import { PrismaClient } from '@prisma/client';
 import { parse } from './parse';
 import { JsonObject } from '@prisma/client/runtime/library';
+import { sendEmail } from './email';
 
 
 const prismaClient = new PrismaClient();
@@ -86,6 +88,7 @@ async function main() {
             const body = parse((currentAction.metadata as JsonObject)?.body as string, zapRunMetadata);
             const to = parse((currentAction.metadata as JsonObject)?.email as string, zapRunMetadata);
             console.log(`Sending out email to ${to} body is ${body}`)
+            await sendEmail(to , body);
            
           }
 
